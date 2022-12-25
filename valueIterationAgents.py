@@ -61,7 +61,23 @@ class ValueIterationAgent(ValueEstimationAgent):
 
     def runValueIteration(self):
         # Write value iteration code here
-        "*** YOUR CODE HERE ***"
+        mdp = self.mdp
+        discount = self.discount
+        iterations = self.iterations
+
+        for i in range(iterations):
+          V = self.values.copy()  # hacer un acopia de los valores actuales para luego modificarlos
+
+          # Qval(s,a) = sum[s'] T(s,a,s')[R(s,a,s')+gV(s')]
+          for state in mdp.getStates():
+            Qval = util.Counter()  # estructura para almacenar los value iteration de cada estado,accion
+            for action in mdp.getPossibleActions(state): # calcular Qval(s,a)
+              Qval[action] = self.computeQValueFromValues(state, action)
+
+            #V*(s,a) = MAX [sum[s'] T(s,a,s')[R(s,a,s')+gV(s')]]
+            V[state] = Qval[Qval.argMax()]  # quedarse con el value iteration maximo
+
+          self.values = V
 
 
     def getValue(self, state):
@@ -76,8 +92,21 @@ class ValueIterationAgent(ValueEstimationAgent):
           Compute the Q-value of action in state from the
           value function stored in self.values.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        # Q-value: Esperanza del premio para una acción --> p(r|a)*r
+
+        mdp = self.mdp
+        values = self.values  # valores asociados a estaods
+        gamma = self.discount  # gamma --> tasa descuento
+
+        T = mdp.getTransitionStatesAndProbs(state, action) #Q(s,a)
+        V = util.Counter() # tabla para guardar los value iteration de cada estado en la iteracion = i
+
+        for (StateSig, funcTrans) in T:
+          R = mdp.getReward(state, action, StateSig) #R(s,a,s')
+          V[StateSig] = funcTrans * (R + gamma * self.getValue(StateSig))
+
+        return V.totalCount()
 
     def computeActionFromValues(self, state):
         """
@@ -88,8 +117,19 @@ class ValueIterationAgent(ValueEstimationAgent):
           there are no legal actions, which is the case at the
           terminal state, you should return None.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        mdp = self.mdp
+        mejorAccion = -1
+        mejorQvalue = float('-inf')
+
+        for a in mdp.getPossibleActions(state):
+          Qvalue = self.computeQValueFromValues(state, a) #funcion que calcula Qval(s,a)
+
+          if Qvalue > mejorQvalue:
+            mejorQvalue = Qvalue
+            mejorAccion = a
+
+        return mejorAccion
+
 
     def getPolicy(self, state):
         return self.computeActionFromValues(state)
@@ -100,6 +140,8 @@ class ValueIterationAgent(ValueEstimationAgent):
 
     def getQValue(self, state, action):
         return self.computeQValueFromValues(state, action)
+
+
 
 class AsynchronousValueIterationAgent(ValueIterationAgent):
     """
