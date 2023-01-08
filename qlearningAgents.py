@@ -133,8 +133,7 @@ class QLearningAgent(ReinforcementAgent):
         """
         "*** YOUR CODE HERE ***"
         qUpdate = self.getQValue(state, action) + \
-                  self.alpha*(reward + self.discount * self.getValue(nextState)) - \
-                  self.getQValue(state, action)
+                  self.alpha*(reward + self.discount * self.getValue(nextState) - self.getQValue(state, action))
 
         self.qValues[(state, action)] = qUpdate
 
