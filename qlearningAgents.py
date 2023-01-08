@@ -16,7 +16,7 @@ from game import *
 from learningAgents import ReinforcementAgent
 from featureExtractors import *
 
-import random,util,math
+import random, util, math
 
 class QLearningAgent(ReinforcementAgent):
     """
@@ -73,8 +73,9 @@ class QLearningAgent(ReinforcementAgent):
             qValues = []
             for action in actions:
                 qValues.append(self.getQValue(state, action))
+            qValue = max(qValues)
 
-            return max(qValues)
+        return qValue
 
     def computeActionFromQValues(self, state):
         """
@@ -118,7 +119,7 @@ class QLearningAgent(ReinforcementAgent):
         if util.flipCoin(self.epsilon):
             action = random.choice(legalActions)
         else:
-            action = self.getPolicy(state)
+            action = self.computeActionFromQValues(state)
 
         return action
 
@@ -197,7 +198,9 @@ class ApproximateQAgent(PacmanQAgent):
         "*** YOUR CODE HERE ***"
         weight = self.getWeights()
         features = self.featExtractor.getFeatures(state, action)
-        return weight * features
+        qValue = weight * features
+
+        return qValue
 
     def update(self, state, action, nextState, reward):
         """
@@ -207,9 +210,10 @@ class ApproximateQAgent(PacmanQAgent):
         features = self.featExtractor.getFeatures(state, action)
         nextMaxQ = self.computeValueFromQValues(nextState)
         actQValue = self.getQValue(state, action)
+        difference = reward + self.discount * nextMaxQ - actQValue
 
         for feature in features:
-            self.weights[feature] += self.alpha * (reward + self.discount * nextMaxQ - actQValue) * features[feature]
+            self.weights[feature] += self.alpha * difference * features[feature]
 
     def final(self, state):
         "Called at the end of each game."
