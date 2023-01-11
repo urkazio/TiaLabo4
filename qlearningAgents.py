@@ -92,7 +92,7 @@ class QLearningAgent(ReinforcementAgent):
             actions_aux = []
             maxVal = self.getValue(state)
             for action in actions:
-                if self.getQValue(state, action) == maxVal:
+                if self.getQValue(state, action) >= maxVal:
                     actions_aux.append(action)
 
             return random.choice(actions_aux)
